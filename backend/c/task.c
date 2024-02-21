@@ -22,7 +22,23 @@ struct File {
  */
 char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     *numLeafFiles = 0;
-    return malloc(0 * sizeof(char *));
+    char **fileNames = malloc(numFiles * sizeof(char *));
+    
+    // O(n^2) too slow
+    for (int i = 0; i < numFiles; i++) {
+        bool isLeaf = true;
+        for (int j = 0; j < numFiles; j++) {
+            if (files[j].parent == files[i].id) {
+                isLeaf = false;
+                break;
+            }
+        }
+        if (isLeaf) {
+            fileNames[i] = strdup(files[i].name);
+            (*numLeafFiles)++;
+        }
+    }
+    return fileNames;
 }
 
 /**

@@ -2,6 +2,8 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 struct File {
     int id;
@@ -16,6 +18,22 @@ struct File {
  * Task 1
  */
 std::vector<std::string> leafFiles(std::vector<File> files) {
+
+    auto filesMap = std::unordered_map<int, File>();
+    auto filesSet = std::unordered_set<int>();
+
+    for (auto &file : files) {
+        filesMap.emplace(file.id, &file);
+    }
+
+    for (auto &file : files) {
+        if (filesMap.find(file.parent) != filesMap.end()) {
+            filesSet.insert(file.parent);
+        }
+    }
+
+    for ()
+
     return std::vector<std::string>();
 }
 
