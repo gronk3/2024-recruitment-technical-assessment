@@ -14,41 +14,116 @@ struct File {
     int size;
 };
 
+// Helper function for Task 3
+int calcFileSize(int childId, std::unordered_map<int, int> &idSizes, std::unordered_map<int, 
+            std::vector<int>> &parentChilds, std::unordered_map<int, File> &idFiles);
+
 /**
  * Task 1
  */
 std::vector<std::string> leafFiles(std::vector<File> files) {
-
-    auto filesMap = std::unordered_map<int, File>();
+    auto idFiles = std::unordered_map<int, File>();
     auto filesSet = std::unordered_set<int>();
 
     for (auto &file : files) {
-        filesMap.emplace(file.id, &file);
+        idFiles.emplace(file.id, file);
+        filesSet.insert(file.id);
     }
 
     for (auto &file : files) {
-        if (filesMap.find(file.parent) != filesMap.end()) {
-            filesSet.insert(file.parent);
+        if (idFiles.find(file.parent) != idFiles.end()) {
+            filesSet.erase(file.parent);
         }
     }
 
-    for ()
+    auto leafFiles = std::vector<std::string>();
 
-    return std::vector<std::string>();
+    for (auto &fileId : filesSet) {
+        leafFiles.push_back(idFiles.find(fileId)->second.name);
+    }
+
+    return leafFiles;
 }
 
 /**
  * Task 2
  */
 std::vector<std::string> kLargestCategories(std::vector<File> files, int k) {
-    return std::vector<std::string>();
+
+
+    auto categoryCounts = std::unordered_map<std::string,int>();
+
+    for (auto &file : files) {
+        for (auto &category : file.categories) {
+            categoryCounts[category] += 1;
+        }
+    }
+    
+    auto categories = std::vector<std::string>();
+
+    for (int i = 0; i < k && !categoryCounts.empty(); ++i) {
+        auto max = std::max_element(categoryCounts.begin(), categoryCounts.end(), 
+        [] (std::pair<std::string, int> a, std::pair<std::string, int> b) {
+            if (a.second == b.second) return a.first.compare(b.first) > 0;
+            return a.second < b.second;
+        });
+
+        categories.push_back(max->first);
+        categoryCounts.erase(max);
+    }
+
+    return categories;
 }
 
 /**
  * Task 3
  */
 int largestFileSize(std::vector<File> files) {
-    return 0;
+
+    auto idFiles = std::unordered_map<int, File>();
+    auto parentChilds = std::unordered_map<int, std::vector<int>>();
+    for (auto &file : files) {
+        idFiles.emplace(file.id, file);
+        parentChilds[file.parent].push_back(file.id);
+    }
+
+    auto idSizes = std::unordered_map<int, int>();
+    for (auto &file : files) {
+        if (parentChilds.find(file.id) == parentChilds.end()) {
+            // curr file is a leaf
+            idSizes[file.id] = file.size;
+        } else {
+            idSizes[file.id] = -1;
+        }
+    }
+
+
+    for (auto &idSize : idSizes) {
+        calcFileSize(idSize.first, idSizes, parentChilds, idFiles);
+    }
+
+
+    return std::max_element(idSizes.begin(), idSizes.end(), 
+        [] (std::pair<int, int> a, std::pair<int, int> b) {
+            return a.second < b.second;
+        })->second;
+}
+
+// Function finds the size of the current file in sort of a dp manner. 
+// If the child of a parent has already been calculated then we can just use that value, otherwise
+// we calculate the child at the same time and save that value, so we don't have to repeat this calc
+int calcFileSize(int fileId, std::unordered_map<int, int> &idSizes, std::unordered_map<int, 
+            std::vector<int>> &parentChilds, std::unordered_map<int, File> &idFiles) 
+{
+    if (idSizes[fileId] != -1) return idSizes[fileId];
+
+    idSizes[fileId] = idFiles[fileId].size;
+
+    for (auto &childId : parentChilds[fileId]) {
+        idSizes[fileId] += calcFileSize(childId, idSizes, parentChilds, idFiles);
+    }
+
+    return idSizes[fileId];
 }
 
 int main(void) {
